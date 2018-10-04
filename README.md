@@ -1,7 +1,9 @@
 This repo demonstrates an undesirable behavior currently found in ActiveRecord 5.2 and master:
 
 Given a database which supports advisory locks,
+
 When there are no runnable migrations,
+
 Then ActiveRecord::Migrator should not attempt to acquire an advisory lock.
 
 To see this behavior in action, simply run `run_test.sh`. Because this test requires a database which supports advisory locks, this script uses [dbdeployer](https://github.com/datacharmer/dbdeployer) to install, setup and run and teardown a sandboxed instance of MySQL. The script only modifies the contents of own directory.  It is safe to run repeatedly.
