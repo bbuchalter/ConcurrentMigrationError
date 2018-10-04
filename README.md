@@ -4,7 +4,7 @@ Given a database which supports advisory locks,
 
 When there are no runnable migrations,
 
-Then ActiveRecord::Migrator should not attempt to acquire an advisory lock.
+Then ActiveRecord::Migrator acquires an advisory lock.
 
 To see this behavior in action, simply run `run_test.sh`. Because this test requires a database which supports advisory locks, this script uses [dbdeployer](https://github.com/datacharmer/dbdeployer) to install, setup and run and teardown a sandboxed instance of MySQL. The script only modifies the contents of own directory.  It is safe to run repeatedly.
 
@@ -14,5 +14,6 @@ LHM migrations rely on the same underlying machinery as ActiveRecord migrations 
 
 Since LHM migrations are generally long running, they are typically deployed via a separate process to avoid blocking code deployments. Additionally, the primary code deployment process typically includes a step to invoke ActiveRecord migrations automatically for convenience. Thus we come to the undesired behavior:
 * When a LHM, wrapped in an ActiveRecord migration class, is deployed in a separate, long-running process, it acquires a lock.
-* When a developer wishes to deploy code, NOT migrations, via another deployment process which invokes the ActiveRecord::Migrator...
-* The [ConcurrentMigrationError](https://github.com/rails/rails/blob/v5.2.1/activerecord/lib/active_record/migration.rb#L1361) exception is raised, preventing deployments.
+* When a developer wishes to deploy code, NOT migrations, via another deployment process which invokes the `ActiveRecord::Migrator`...
+* The `ActiveRecord::Migrator` attempts to acquire the same lock as the LHM, and fails causing the [ConcurrentMigrationError](https://github.com/rails/rails/blob/v5.2.1/activerecord/lib/active_record/migration.rb#L1361) exception.
+* Developers can no longer deploy and run an LHM at the same time.
