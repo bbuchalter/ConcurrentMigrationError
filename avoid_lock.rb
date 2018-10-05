@@ -36,7 +36,10 @@ class BugTest < Minitest::Test
     hold_advisory_lock_in_different_session do
       # This should not attempt to acquire a lock
       # because there are no migrations to run.
-      empty_migration.migrate
+      err = assert_raises { empty_migration.migrate }
+      assert_equal ActiveRecord::ConcurrentMigrationError, err.class
+
+      assert_nil non_locking_empty_migration.migrate
     end
   end
 
@@ -55,7 +58,17 @@ class BugTest < Minitest::Test
     ActiveRecord::Migrator.new(:up, [])
   end
 
+  def non_locking_empty_migration
+    NonLockingEmptyMigration.new(:up, [])
+  end
+
   def lock_id
     @lock_id ||= empty_migration.send(:generate_migrator_advisory_lock_id)
   end
+end
+
+class NonLockingEmptyMigration < ActiveRecord::Migrator
+    def migrate
+      super unless runnable.empty?
+    end
 end
