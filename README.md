@@ -17,3 +17,5 @@ Since LHM migrations are generally long running, they are typically deployed via
 * When a developer wishes to deploy code, NOT migrations, via another deployment process which invokes the `ActiveRecord::Migrator`...
 * The `ActiveRecord::Migrator` attempts to acquire the same lock as the LHM, and fails causing the [ConcurrentMigrationError](https://github.com/rails/rails/blob/v5.2.1/activerecord/lib/active_record/migration.rb#L1361) exception.
 * Developers can no longer deploy and run an LHM at the same time.
+
+The remedy is as simple as checking to see if there are any runnable migrations before acquring the lock.
